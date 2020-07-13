@@ -94,7 +94,7 @@ def out_of_china(lng, lat):
 
 def gcj02tobd09ll(lng, lat):
     """
-    火星坐标系转百度坐标系
+    火星坐标系转百度经纬度坐标系
     :param lng:火星坐标经度
     :param lat:火星坐标纬度
     :return:
@@ -108,9 +108,9 @@ def gcj02tobd09ll(lng, lat):
 
 def bd09lltogcj02(bd_lon, bd_lat):
     """
-    百度坐标系转火星坐标系
-    :param bd_lon:百度坐标经度
-    :param bd_lat:百度坐标纬度
+    百度经纬度坐标系转火星坐标系
+    :param bd_lon:百度经纬度坐标经度
+    :param bd_lat:百度经纬度坐标纬度
     :return:转换后的坐标列表形式
     """
     x = bd_lon - 0.0065
@@ -141,9 +141,9 @@ LL2MC = [[-0.0015702102444, 111320.7020616939, 1704480524535203, -10338987376042
 # http://www.yanglajiao.com/article/doulejian/70155080
 def bd09mctobd09ll(x1,y1):
     """
-    百度墨卡托坐标系(bd09mc)转百度坐标系(bd09ll)
-    :param x1:百度墨卡托坐标纬度
-    :param y1:百度墨卡托坐标经度
+    百度墨卡托米制坐标系(bd09mc)转百度坐标系(bd09ll)
+    :param x1:百度墨卡托米制坐标经度
+    :param y1:百度墨卡托米制坐标纬度
     :return:转换后的坐标列表形式
     """
     for cE in range(len(MCBAND)):
