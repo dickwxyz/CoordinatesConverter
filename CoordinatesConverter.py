@@ -5,6 +5,39 @@ Created on Fri Aug 4 23:48:00 2017
 @author: Doctor Qian  
 """
 import math
+import time
+from datetime import datetime
+
+# 字符串时刻转时间戳
+def str_to_timestamp(string):
+    """
+    字符串时刻转时间戳
+    :param string:'20230807090303' or '2023/08/07 09:03:03' or '2023-08-07 09:03:03'
+    :return timestamp:int
+    """
+    if '/' in string:
+        string1 = string
+    elif '-' in string:
+        string1 = string.replace('-', '/')
+    else:
+        string1 = string[:4]+'/'+string[4:6]+'/'+string[6:8]+' '+string[8:10]+':'+\
+        string[10:12]+':'+string[12:14]
+    time_format = "%Y/%m/%d %H:%M:%S"  
+    struct_time = time.strptime(string1, time_format)
+    timestamp = time.mktime(struct_time)
+    return int(timestamp)
+
+# 时间戳转字符串时间
+def timestamp_to_str(timestamp):
+    """
+    时间戳转格式化时刻
+    :param timestamp:1665363629
+    :return str:'%Y/%m/%d %H:%M:%S'
+    """
+    dt_object = datetime.fromtimestamp(timestamp)
+    formatted_time = dt_object.strftime('%Y/%m/%d %H:%M:%S')
+    return formatted_time
+    
 x_pi = 3.14159265358979324 * 3000.0 / 180.0
 pi = 3.1415926535897932384626  # π
 a = 6378245.0  # 长半轴
@@ -16,7 +49,7 @@ def wgs84togcj02(lng, lat):
     大地坐标系转火星坐标系
     :param lng:WGS84坐标系经度
     :param lat:WGS84坐标系纬度
-    :return:
+    :return mglng, mglat:float, float
     """
     if out_of_china(lng, lat):  # 判断是否在国内
         return lng, lat
@@ -32,13 +65,13 @@ def wgs84togcj02(lng, lat):
     mglng = lng + dlng
     return mglng, mglat
 
-
+# GCJ-02 转换为 WGS-84 
 def gcj02towgs84(lng, lat):
     """
     火星坐标系转大地坐标系
     :param lng:火星坐标系经度
     :param lat:火星坐标系纬度
-    :return:
+    :return wgslng, wgslat:float, float
     """
     if out_of_china(lng, lat):
         return lng, lat
@@ -92,12 +125,13 @@ def out_of_china(lng, lat):
         return True
     return False
 
+# GCJ-02 转换为 BD09LL
 def gcj02tobd09ll(lng, lat):
     """
-    火星坐标系转百度经纬度坐标系
+    火星坐标系转百度坐标系
     :param lng:火星坐标经度
     :param lat:火星坐标纬度
-    :return:
+    :return bdlng, bdlat:float, float
     """
     z = math.sqrt(lng * lng + lat * lat) + 0.00002 * math.sin(lat * x_pi)
     theta = math.atan2(lat, lng) + 0.000003 * math.cos(lng * x_pi)
@@ -105,13 +139,13 @@ def gcj02tobd09ll(lng, lat):
     bd_lat = z * math.sin(theta) + 0.006
     return bd_lng, bd_lat
 
-
+# BD09LL 转换为 GCJ-02
 def bd09lltogcj02(bd_lon, bd_lat):
     """
-    百度经纬度坐标系转火星坐标系
-    :param bd_lon:百度经纬度坐标经度
-    :param bd_lat:百度经纬度坐标纬度
-    :return:转换后的坐标列表形式
+    百度坐标系转火星坐标系
+    :param bd_lon:百度坐标经度
+    :param bd_lat:百度坐标纬度
+    :return gcjlng, gcjlat:float, float
     """
     x = bd_lon - 0.0065
     y = bd_lat - 0.006
@@ -121,15 +155,29 @@ def bd09lltogcj02(bd_lon, bd_lat):
     gg_lat = z * math.sin(theta)
     return gg_lng, gg_lat
 
-def wgs84tobd09ll(lon,lat):
-    lon, lat = wgs84togcj02(lon, lat)
-    lon, lat = gcj02tobd09ll(lon, lat)
-    return lon,lat
+# WGS-84 转换为 BD09LL
+def wgs84tobd09ll(lng,lat):
+    """
+    大地坐标系转百度坐标系
+    :param lng:WGS84坐标系经度
+    :param lat:WGS84坐标系纬度
+    :return bdlng, bdlat:float, float
+    """
+    gcjlng, gcjlat = wgs84togcj02(lng, lat)
+    bdlng, bdlat = gcj02tobd09ll(gcjlng, gcjlat)
+    return bdlng,bdlat
 
-def bd09lltowgs84(lon,lat):
-    lon, lat = bd09lltogcj02(lon, lat)
-    lon, lat = gcj02towgs84(lon, lat)
-    return lon,lat
+# BD09LL 转换为 WGS-84
+def bd09lltowgs84(bdlng,bdlat):
+    """
+    百度坐标系转大地坐标系
+    :param bdlng:WGS84坐标系经度
+    :param bdlat:WGS84坐标系纬度
+    :return wgslng, wgslat:float, float
+    """
+    gcjlng, gcjlat = bd09lltogcj02(bdlng, bdlat)
+    wgslng, wgslat = gcj02towgs84(gcjlng, gcjlat)
+    return wgslng,wgslat
 
 
 EARTHRADIUS = 6370996.81;
@@ -138,12 +186,12 @@ LLBAND = [75, 60, 45, 30, 15, 0]
 MC2LL = [[1.410526172116255e-8, 0.00000898305509648872, -1.9939833816331, 200.9824383106796, -187.2403703815547, 91.6087516669843, -23.38765649603339, 2.57121317296198, -0.03801003308653, 17337981.2],[-7.435856389565537e-9, 0.000008983055097726239, -0.78625201886289, 96.32687599759846, -1.85204757529826, -59.36935905485877, 47.40033549296737, -16.50741931063887, 2.28786674699375, 10260144.86],[-3.030883460898826e-8, 0.00000898305509983578, 0.30071316287616, 59.74293618442277, 7.357984074871, -25.38371002664745, 13.45380521110908, -3.29883767235584, 0.32710905363475, 6856817.37],[-1.981981304930552e-8, 0.000008983055099779535, 0.03278182852591, 40.31678527705744, 0.65659298677277, -4.44255534477492, 0.85341911805263, 0.12923347998204, -0.04625736007561, 4482777.06],[3.09191371068437e-9, 0.000008983055096812155, 0.00006995724062, 23.10934304144901, -0.00023663490511, -0.6321817810242, -0.00663494467273, 0.03430082397953, -0.00466043876332, 2555164.4],[2.890871144776878e-9, 0.000008983055095805407, -3.068298e-8, 7.47137025468032, -0.00000353937994, -0.02145144861037, -0.00001234426596, 0.00010322952773, -0.00000323890364, 826088.5]]
 LL2MC = [[-0.0015702102444, 111320.7020616939, 1704480524535203, -10338987376042340, 26112667856603880, -35149669176653700, 26595700718403920, -10725012454188240, 1800819912950474, 82.5],[0.0008277824516172526, 111320.7020463578, 647795574.6671607, -4082003173.641316, 10774905663.51142, -15171875531.51559, 12053065338.62167, -5124939663.577472, 913311935.9512032, 67.5],[0.00337398766765, 111320.7020202162, 4481351.045890365, -23393751.19931662, 79682215.47186455, -115964993.2797253, 97236711.15602145, -43661946.33752821, 8477230.501135234, 52.5],[0.00220636496208, 111320.7020209128, 51751.86112841131, 3796837.749470245, 992013.7397791013, -1221952.21711287, 1340652.697009075, -620943.6990984312, 144416.9293806241, 37.5],[-0.0003441963504368392, 111320.7020576856, 278.2353980772752, 2485758.690035394, 6070.750963243378, 54821.18345352118, 9540.606633304236, -2710.55326746645, 1405.483844121726, 22.5],[-0.0003218135878613132, 111320.7020701615, 0.00369383431289, 823725.6402795718, 0.46104986909093, 2351.343141331292, 1.58060784298199, 8.77738589078284, 0.37238884252424, 7.45]]
 
-# http://www.yanglajiao.com/article/doulejian/70155080
+# BD09MC 转换为 BD09LL
 def bd09mctobd09ll(x1,y1):
     """
-    百度墨卡托米制坐标系(bd09mc)转百度坐标系(bd09ll)
-    :param x1:百度墨卡托米制坐标经度
-    :param y1:百度墨卡托米制坐标纬度
+    百度墨卡托坐标系(bd09mc)转百度坐标系(bd09ll)
+    :param x1:百度墨卡托坐标经度
+    :param y1:百度墨卡托坐标纬度
     :return:转换后的坐标列表形式
     """
     for cE in range(len(MCBAND)):
@@ -155,6 +203,65 @@ def bd09mctobd09ll(x1,y1):
     yTemp = cF[2] + cF[3] * cC + cF[4] * cC **2 + cF[5] * cC **3 + cF[6] * cC **4 + cF[7] * cC **5 + cF[8] * cC **6
     return xTemp,yTemp
 
+# BD09LL 转换为 BD09MC
+def bd09lltobd09mc(lng, lat):
+    """
+    百度坐标系(bd09ll)转百度墨卡托坐标系(bd09mc)
+    :param lng:百度墨卡托坐标经度
+    :param lat:百度墨卡托坐标纬度
+    :return:转换后的坐标列表形式
+    """
+    x = abs(lng)
+    y = abs(lat)
+    # z = 0.0
+
+    # 根据纬度选择参数行
+    for i in range(len(LLBAND)):
+        if y >= LLBAND[i]:
+            cF = LL2MC[i]
+            break
+
+    # 计算中间值
+    xTemp = cF[0] + cF[1] * x
+    cC = y / cF[9]
+    yTemp = cF[2] + cF[3] * cC + cF[4] * cC**2 + cF[5] * cC**3 + cF[6] * cC**4 + cF[7] * cC**5 + cF[8] * cC**6
+
+    # 转换为墨卡托坐标
+    mercator_x = xTemp #* 20037508.34 / 180
+    mercator_y = yTemp #* 20037508.34 / 180
+
+    # 符号恢复
+    if lng < 0:
+        mercator_x = -mercator_x
+    if lat < 0:
+        mercator_y = -mercator_y
+    return mercator_x, mercator_y
+
+# WGS-84 转换为 BD09MC
+def wgs84tobd09mc(x1,y1):
+    """
+    大地坐标系(wgs84)转百度墨卡托坐标系(bd09mc)
+    :param x1:大地坐标经度
+    :param y1:大地坐标纬度
+    :return:转换后的坐标列表形式
+    """
+    bd09lllon, bd09lllat = wgs84tobd09ll(x1,y1)
+    bd09mclon, bd09mclat = bd09lltobd09mc(bd09lllon, bd09lllat)
+    return bd09mclon, bd09mclat
+
+# BD09MC 转换为 WGS-84
+def bd09mctowgs84(x1,y1):
+    """
+    百度墨卡托坐标系(bd09mc)转大地坐标系(wgs84)
+    :param x1:百度墨卡托坐标经度
+    :param y1:百度墨卡托坐标纬度
+    :return:转换后的坐标列表形式
+    """
+    bd09lllon, bd09lllat = bd09mctobd09ll(x1,y1)
+    wgslon, wgslat = bd09lltowgs84(bd09lllon, bd09lllat)
+    return wgslon, wgslat
+
+# 计算两个经纬度之间的大地距离
 from math import cos, sin, asin, sqrt
 def CalDistance(lon1, lat1, lon2, lat2):
     dlat = abs(lat1 / 180.0 * pi - lat2 / 180.0 * pi)
