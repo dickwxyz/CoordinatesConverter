@@ -46,6 +46,8 @@
 
 ### 安装
 
+需要 Python 3.9 或以上。
+
 ```bash
 python3 -m pip install .
 ```
