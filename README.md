@@ -43,12 +43,64 @@
 详见 [测试报告.md](./测试报告.md)。
 
 ## 用法
-将`CoordinatesConverter.py`与调用它的文件放在同一目录下。代码示例如下：  
+
+### 安装
+
+```bash
+python3 -m pip install .
+```
+
+也可直接从 GitHub 安装：
+
+```bash
+python3 -m pip install git+https://github.com/dickwxyz/CoordinatesConverter.git
+```
+
+需要边改边生效时用可编辑安装：
+
+```bash
+python3 -m pip install -e .
+```
+
+> 系统里存在多个 Python 时，用 `python3 -m pip` 可确保装进与 `python3` 对应的解释器，避免 `pip` 与 `python3` 指向不同环境。
+
+**注意安装的包名与导入的模块名不同**：装的是 `coordinatesconverter`，导入时写 `CoordinatesConverter`（“坐标转换”）。
 
 ```python
-import CoordinatesConverter as cc  
-lon, lat = cc.bd09lltowgs84(bd_lon, bd_lat)
+import CoordinatesConverter as cc
 ```
+
+### 调用示例
+
+```python
+import CoordinatesConverter as cc
+
+# 百度经纬度 → 大地坐标系
+cc.bd09lltowgs84(121.50637870800159, 31.245413754402072)
+# (121.49533505039834, 31.241787725896685)
+
+# 大地坐标系 → 百度墨卡托米制坐标系
+cc.wgs84tobd09mc(121.49533505039834, 31.241787725896685)
+# (13526177.159496231, 3642296.5924550444)
+
+# 百度墨卡托米制坐标系 → 百度经纬度
+cc.bd09mctobd09ll(13526175.38, 3642294.77)
+# (121.50637870800159, 31.245413754402072)
+
+# 两点球面距离，单位千米
+cc.CalDistance(121.50637870800159, 31.245413754402072, 121.511996, 31.239207)
+# 0.87362428377919
+
+# 字符串时刻 → 时间戳
+cc.str_to_timestamp('2023/08/07 09:03:03')   # 1691370183
+
+# 时间戳 → 字符串时刻
+cc.timestamp_to_str(1691370183)              # '2023/08/07 09:03:03'
+```
+
+### 不安装
+
+也可直接把 `CoordinatesConverter.py` 与调用它的文件放在同一目录下，导入方式相同。
 
 ## 测试
 
@@ -58,7 +110,7 @@ lon, lat = cc.bd09lltowgs84(bd_lon, bd_lat)
 python3 -B test.py
 ```
 
-`-B` 用于不生成 `__pycache__`（本仓库把 `.pyc` 纳入了 git）。全部通过退出码为 `0`，有失败为 `1`，可直接用于 CI 步骤。当前 32 项用例全部通过，详见 [测试报告.md](./测试报告.md)。
+`-B` 用于不生成 `__pycache__`，保持工作区干净。全部通过退出码为 `0`，有失败为 `1`，可直接用于 CI 步骤。当前 32 项用例全部通过，详见 [测试报告.md](./测试报告.md)。
 
 测试函数命名为 `test_*` 且只做断言、无副作用，装了 pytest 后也可直接收集运行：
 
