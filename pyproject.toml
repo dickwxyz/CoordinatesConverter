@@ -1,0 +1,14 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "coordinatesconverter"
+version = "0.1.0"
+description = "WGS84 / GCJ02 / BD09 坐标互转与时间戳转换工具"
+readme = "README.md"
+requires-python = ">=3.7"
+license = { text = "MIT" }
+
+[tool.setuptools]
+py-modules = ["CoordinatesConverter"]

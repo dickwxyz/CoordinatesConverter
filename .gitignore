@@ -7,3 +7,8 @@ __pycache__/
 
 # macOS
 .DS_Store
+
+# 构建产物（pip install -e . 生成）
+*.egg-info/
+build/
+dist/
